@@ -1,0 +1,14 @@
+{
+	"Sites":[
+	{
+		"Name":"TestSite",
+		"RootPath":"Test",
+		"Port":"8080"
+	},
+	{
+		"Name":"TestSite2",
+		"RootPath":"Test2",
+		"Port":"8082"
+	}
+	]
+}
