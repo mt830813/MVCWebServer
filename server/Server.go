@@ -9,8 +9,7 @@ import (
 )
 
 type Server struct {
-	Sites       *SiteCollection
-	keepRunning chan bool
+	Sites *SiteCollection
 }
 
 const (
@@ -35,17 +34,21 @@ func (this *Server) init() error {
 	line, err := ioutil.ReadFile(SiteConfigFile)
 	if err == nil {
 		sc := new(SiteCollection)
+
 		tsc := new(tempSiteCollection)
+
 		err := json.Unmarshal(line, tsc)
 		if err != nil {
 			fmt.Printf(err.Error())
 		}
+
 		for i := 0; i < len(tsc.Sites); i++ {
-			sc.Push(tsc.Sites[i])
+			site := tsc.Sites[i]
+			site.init()
+			sc.Push(site)
 		}
 
 		this.Sites = sc
-		this.keepRunning = make(chan bool)
 
 		return nil
 	}
@@ -59,7 +62,7 @@ func (this *Server) Start() {
 }
 
 func (this *Server) Stop() {
-	this.keepRunning <- true
+	http.HandleFunc()
 }
 
 func (this *Server) defaultHandleFunction(response http.ResponseWriter, request *http.Request) {
