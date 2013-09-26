@@ -2,17 +2,22 @@
 package main
 
 import (
-	"Prj/MVCWebServer/common"
-	"Prj/MVCWebServer/server"
+	"Prj/MVCWebServer/Common"
+	"Prj/MVCWebServer/Server"
 	"bufio"
 	"fmt"
+	//"log"
 	"os"
+	"reflect"
 )
 
 func main() {
+
 	fmt.Printf("ServerStart\n")
 	reader := bufio.NewReader(os.Stdin)
-	sc := server.GetCurrentServer()
+
+	sc := Server.GetCurrentServer()
+	TestFactory()
 	sc.Start()
 	for {
 		line, err := reader.ReadBytes('\n')
@@ -26,4 +31,30 @@ func main() {
 			break
 		}
 	}
+}
+
+type testType struct {
+}
+
+type testInterface interface {
+	Test() int
+}
+
+func (this *testType) Test() int {
+	return 128
+}
+
+func TestFactory() {
+	factory := Common.GetIOCFactory()
+
+	factory.Regist(reflect.TypeOf((*testInterface)(nil)).Elem(),
+		reflect.TypeOf(new(testType)), Common.InstanceType_Normal)
+
+	rResult := new(testType).Test()
+	tObj, _ := factory.Get(reflect.TypeOf((*testInterface)(nil)).Elem())
+
+	tResult := tObj.(*testInterface).Test()
+
+	fmt.Printf("%s", rResult == tResult)
+
 }

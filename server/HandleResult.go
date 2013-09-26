@@ -1,4 +1,4 @@
-package server
+package Server
 
 type HandleResult struct {
 	isSuspand bool

@@ -1,4 +1,4 @@
-package server
+package Server
 
 import (
 	"encoding/json"
@@ -62,7 +62,7 @@ func (this *Server) Start() {
 }
 
 func (this *Server) Stop() {
-	http.HandleFunc()
+
 }
 
 func (this *Server) defaultHandleFunction(response http.ResponseWriter, request *http.Request) {
