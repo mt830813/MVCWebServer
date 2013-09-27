@@ -64,14 +64,21 @@ func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
 		log.Printf(err.Error())
 		return
 	}
+
+	if !this.checkIsImplementInterface(i, t) {
+		fmt.Printf("regist type error")
+		return
+	}
+
 	dContext := new(decorateRegistcontext)
 	dContext.currentContext = this.createNormalRegistContext(i, t, instType)
+	fmt.Printf("regist context %s,%v,%v", dContext.currentContext.bType.PkgPath(), t, i)
 	var cContext *decorateRegistcontext
 
 	if rContext != nil {
 		idType := reflect.TypeOf((*IDecorater)(nil)).Elem()
 		if !this.checkIsImplementInterface(idType, t) {
-			log.Printf("strcut not implement interface IDecorater can't regist as a decorater")
+			log.Printf("struct not implement interface IDecorater can't regist as a decorater")
 			return
 		}
 		switch rContext.(type) {
@@ -126,6 +133,7 @@ func (this *IOCFactory) getRegistContext(key string, i reflect.Type) (interface{
 func (this *IOCFactory) getPArray(i reflect.Type) interfaceArrayValue {
 
 	pName := i.Name()
+
 	if this.array[pName] == nil {
 		this.array[pName] = make(interfaceArrayValue)
 	}
@@ -134,9 +142,11 @@ func (this *IOCFactory) getPArray(i reflect.Type) interfaceArrayValue {
 
 func (this *IOCFactory) createNormalRegistContext(i reflect.Type,
 	t reflect.Type, instType InstanceType) *registContext {
+
 	returnValue := new(registContext)
 	returnValue.bType = t
 	returnValue.instType = instType
+
 	return returnValue
 }
 
@@ -145,14 +155,26 @@ func (this *IOCFactory) checkIsImplementInterface(i reflect.Type, instType refle
 }
 
 func (this *IOCFactory) createNewInst(context *registContext) interface{} {
-	return reflect.New(context.bType).Elem().Interface()
+	returnValue := reflect.New(context.bType.Elem())
+	var i interface{} = returnValue.Interface()
+	fmt.Printf("elem:%v,method:%v\n", returnValue, returnValue.Method(0))
+	return i
+
 }
 
 func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext) interface{} {
+
 	returnValue := this.createNewInst(context.currentContext)
-	fmt.Printf("context:%v\n", context.nextContext)
+	if returnValue == nil {
+		return nil
+	}
+	fmt.Printf("returnValue is :%v,context:%v\n", returnValue, context.currentContext.bType.Name())
 	if context.nextContext != nil {
-		returnValue.(IDecorater).SetPackage(this.createNewDecorateInst(context.nextContext))
+		tPackage := this.createNewDecorateInst(context.nextContext)
+		id := returnValue.(IDecorater)
+		tId := id
+		fmt.Printf("tPackage:%v,interface:%v\n", tPackage, tId)
+		tId.SetPackage(tPackage)
 	}
 	return returnValue
 }

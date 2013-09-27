@@ -83,7 +83,7 @@ func TestDecorateInst(t *testing.T) {
 
 	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
 
-	factory.Regist(reflect.TypeOf((*testInterface)(nil)).Elem(),
+	factory.Regist(ti,
 		reflect.TypeOf(new(testType)), InstanceType_Normal)
 	factory.RegistDecorate(ti, reflect.TypeOf(new(testTypeDecorater)), InstanceType_Singleton)
 
@@ -101,6 +101,7 @@ func TestDecorateInst(t *testing.T) {
 }
 
 type testType struct {
+	key int
 }
 
 type testType2 struct {
@@ -127,7 +128,7 @@ func (this *testTypeDecorater) SetPackage(i interface{}) {
 }
 
 func (this *testType) Test() int {
-	return 128
+	return this.key
 }
 
 func (this *testType3) Test() int {

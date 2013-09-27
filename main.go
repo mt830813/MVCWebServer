@@ -6,7 +6,6 @@ import (
 	"Prj/MVCWebServer/Server"
 	"bufio"
 	"fmt"
-	//"log"
 	"os"
 	"reflect"
 )
@@ -28,12 +27,15 @@ func main() {
 		command := string(line[:len(line)-2])
 		fmt.Printf("Get Command:%s\n", command)
 		if command == "stop" {
+			fmt.Printf("app exit\n")
+			sc.Stop()
 			break
 		}
 	}
 }
 
 type testType struct {
+	key int
 }
 
 type testInterface interface {
@@ -41,7 +43,7 @@ type testInterface interface {
 }
 
 func (this *testType) Test() int {
-	return 128
+	return this.key
 }
 
 type testTypeDecorater struct {
@@ -54,6 +56,7 @@ func (this *testTypeDecorater) Test() int {
 
 func (this *testTypeDecorater) SetPackage(i interface{}) {
 	obj := i.(testInterface)
+	fmt.Printf("package:%v,%d,%v,%v\n", this, obj.Test(), this == nil, obj == nil)
 	this.innerPackage = obj
 }
 
@@ -62,15 +65,16 @@ func TestFactory() {
 
 	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
 
-	factory.Regist(reflect.TypeOf((*testInterface)(nil)).Elem(),
+	factory.Regist(ti,
 		reflect.TypeOf(new(testType)), Common.InstanceType_Normal)
-	factory.RegistDecorate(ti, reflect.TypeOf(new(testTypeDecorater)), Common.InstanceType_Singleton)
+
+	factory.RegistDecorate(ti, reflect.TypeOf(new(testTypeDecorater)), Common.InstanceType_Normal)
 
 	rResult := new(testType).Test()
 	tObj, _ := factory.Get(ti)
 
 	tResult := tObj.(testInterface).Test()
 
-	fmt.Printf("%s", rResult == tResult)
+	fmt.Printf("%d,%d", tResult, rResult)
 
 }
