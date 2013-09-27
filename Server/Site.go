@@ -13,12 +13,11 @@ const (
 )
 
 type Site struct {
-	RootPath      string
-	Port          string
-	Name          string
-	Handles       []string
-	_handleModels []IWebHandler
-	inst          *http.Server
+	RootPath string
+	Port     string
+	Name     string
+	Handles  []string
+	inst     *http.Server
 }
 
 func (this *Site) Start() {
@@ -31,8 +30,8 @@ func (this *Site) Start() {
 	}
 }
 
-func (this *Site) Stop(){	
-	
+func (this *Site) Stop() {
+
 }
 
 func (this *Site) init() {
@@ -45,19 +44,6 @@ func (this *Site) ServeHTTP(response http.ResponseWriter, request *http.Request)
 
 	temp, err := ioutil.ReadFile(filePath)
 
-	if this._handleModels != nil {
-		for _, handler := range this._handleModels {
-			result := handler.Handle(response, request)
-
-			if result.isShowMsg {
-				fmt.Printf("%s~:%s", time.Now().Format(strTimeFormat), result.msg)
-			}
-
-			if result.isSuspand {
-				return
-			}
-		}
-	}
 	if err != nil {
 		response.WriteHeader(404)
 		fmt.Printf("%v~:%s\n", time.Now().Format(strTimeFormat), err.Error())

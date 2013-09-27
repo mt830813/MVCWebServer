@@ -3,7 +3,14 @@
 	{
 		"Name":"TestSite",
 		"RootPath":"Test",
-		"Port":"8080"
+		"Port":"8080",
+		"SiteSetting":{
+			"Muxes":[
+				{
+					
+				}
+			]
+		}
 	},
 	{
 		"Name":"TestSite2",

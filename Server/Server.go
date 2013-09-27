@@ -83,7 +83,7 @@ func (this *Server) defaultHandleFunction(response http.ResponseWriter, request 
 func (this *Server) registType() {
 	factory := Common.GetIOCFactory()
 
-	iWebHandleType := reflect.TypeOf((*IWebHandler)(nil)).Elem()
+	iWebHandleType := reflect.TypeOf((*http.Handler)(nil)).Elem()
 
 	factory.RegistByName("MvcModule", iWebHandleType, reflect.TypeOf(new(Module.MvcModule)), Common.InstanceType_Normal)
 
