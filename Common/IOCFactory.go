@@ -97,7 +97,12 @@ func (this *IOCFactory) GetByName(key string, i reflect.Type) (interface{}, erro
 	} else {
 		switch iContext.(type) {
 		case *registContext:
-			returnValue = this.createNewInst(iContext.(*registContext))
+			regContext := iContext.(*registContext)
+			returnValue = this.createNewInst(regContext)
+			if regContext.instType == InstanceType_Singleton {
+				pArray := this.getPArray(i)
+				pArray[key] = returnValue
+			}
 		case *decorateRegistcontext:
 			drContext := iContext.(*decorateRegistcontext)
 			returnValue = this.createNewDecorateInst(drContext)
@@ -144,9 +149,10 @@ func (this *IOCFactory) createNewInst(context *registContext) interface{} {
 }
 
 func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext) interface{} {
-	returnValue := this.createNewInst(context.currentContext).(IDecorater)
+	returnValue := this.createNewInst(context.currentContext)
+	fmt.Printf("context:%v\n", context.nextContext)
 	if context.nextContext != nil {
-		returnValue.SetPackage(this.createNewDecorateInst(context.nextContext))
+		returnValue.(IDecorater).SetPackage(this.createNewDecorateInst(context.nextContext))
 	}
 	return returnValue
 }

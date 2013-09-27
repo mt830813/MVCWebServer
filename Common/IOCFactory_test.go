@@ -49,30 +49,52 @@ func TestRegist(t *testing.T) {
 func TestNormalInst(t *testing.T) {
 	factory := GetIOCFactory()
 
-	factory.Regist(reflect.TypeOf((*testInterface)(nil)).Elem(),
-		reflect.TypeOf(new(testType)), InstanceType_Normal)
-	factory.RegistByName("other", reflect.TypeOf((*testInterface)(nil)).Elem(),
-		reflect.TypeOf(new(testType3)), InstanceType_Normal)
+	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
+
+	factory.Regist(ti, reflect.TypeOf(new(testType)), InstanceType_Normal)
+	factory.RegistByName("other", ti, reflect.TypeOf(new(testType3)), InstanceType_Singleton)
 
 	rResult := new(testType).Test()
 
-	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
-
 	tObj, _ := factory.Get(ti)
 	oObj, _ := factory.GetByName("other", ti)
+	oObjTwo, _ := factory.GetByName("other", ti)
 	tResult := tObj.(testInterface).Test()
 	oResult := oObj.(testInterface).Test()
-	tContext, _ := factory.getRegistContext("default", ti)
-	rContext, _ := factory.getRegistContext("default", ti)
-	oContext, _ := factory.getRegistContext("other", ti)
 
-	fmt.Printf("%v,%v", tContext == oContext, rContext == tContext)
+	fmt.Printf("")
 	if tResult != rResult {
 		t.Logf("instance error\ntResult:%d rResult:%d", tResult, rResult)
 		t.Fail()
 	}
 	if oResult == tResult {
 		t.Logf("instance error\ntResult:%d oResult:%d", tResult, oResult)
+		t.Fail()
+	}
+
+	if oObj != oObjTwo {
+		t.Logf("instance error")
+		t.Fail()
+	}
+}
+
+func TestDecorateInst(t *testing.T) {
+	factory := GetIOCFactory()
+
+	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
+
+	factory.Regist(reflect.TypeOf((*testInterface)(nil)).Elem(),
+		reflect.TypeOf(new(testType)), InstanceType_Normal)
+	factory.RegistDecorate(ti, reflect.TypeOf(new(testTypeDecorater)), InstanceType_Singleton)
+
+	var rObj = new(testType)
+	var rResult = rObj.Test()
+
+	var tObj, _ = factory.Get(ti)
+	var tResult = tObj.(testInterface).Test()
+
+	if tResult != rResult*4 {
+		t.Logf("decorate result error")
 		t.Fail()
 	}
 
@@ -89,6 +111,19 @@ type testType3 struct {
 
 type testInterface interface {
 	Test() int
+}
+
+type testTypeDecorater struct {
+	innerPackage testInterface
+}
+
+func (this *testTypeDecorater) Test() int {
+	return this.innerPackage.Test() * 4
+}
+
+func (this *testTypeDecorater) SetPackage(i interface{}) {
+	obj := i.(testInterface)
+	this.innerPackage = obj
 }
 
 func (this *testType) Test() int {

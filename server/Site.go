@@ -18,10 +18,13 @@ type Site struct {
 	Name          string
 	Handles       []string
 	_handleModels []IWebHandler
+	inst          *http.Server
 }
 
 func (this *Site) Start() {
-	err := http.ListenAndServe(":"+this.Port, this)
+	this.inst = &http.Server{Addr: ":" + this.Port, Handler: this}
+
+	err := this.inst.ListenAndServe()
 
 	if err != nil {
 		fmt.Printf("%s", err.Error())
