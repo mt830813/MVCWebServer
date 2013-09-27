@@ -31,12 +31,11 @@ func (this *Site) Start() {
 	}
 }
 
-func (this *Site) Stop(){	
-	
+func (this *Site) Stop() {
+
 }
 
 func (this *Site) init() {
-
 }
 
 func (this *Site) ServeHTTP(response http.ResponseWriter, request *http.Request) {
