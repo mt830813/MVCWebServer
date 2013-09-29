@@ -2,7 +2,7 @@ package Server
 
 import (
 	"Prj/MVCWebServer/Common"
-	"Prj/MVCWebServer/server/Module"
+	"Prj/MVCWebServer/Server/Module"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -85,7 +85,7 @@ func (this *Server) registType() {
 
 	iWebHandleType := reflect.TypeOf((*http.Handler)(nil)).Elem()
 
-	factory.RegistByName("MvcModule", iWebHandleType, reflect.TypeOf(new(Module.MvcModule)), Common.InstanceType_Normal)
+	factory.RegistByName("MvcModule", iWebHandleType, reflect.TypeOf(new(Module.CommonMvcModule)), Common.InstanceType_Normal)
 
 }
 

@@ -72,7 +72,6 @@ func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
 
 	dContext := new(decorateRegistcontext)
 	dContext.currentContext = this.createNormalRegistContext(i, t, instType)
-	fmt.Printf("regist context %s,%v,%v", dContext.currentContext.bType.PkgPath(), t, i)
 	var cContext *decorateRegistcontext
 
 	if rContext != nil {
@@ -157,7 +156,6 @@ func (this *IOCFactory) checkIsImplementInterface(i reflect.Type, instType refle
 func (this *IOCFactory) createNewInst(context *registContext) interface{} {
 	returnValue := reflect.New(context.bType.Elem())
 	var i interface{} = returnValue.Interface()
-	fmt.Printf("elem:%v,method:%v\n", returnValue, returnValue.Method(0))
 	return i
 
 }

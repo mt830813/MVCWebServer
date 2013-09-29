@@ -2,79 +2,71 @@
 package main
 
 import (
+	"Prj/MVCWebServer/Command"
 	"Prj/MVCWebServer/Common"
 	"Prj/MVCWebServer/Server"
 	"bufio"
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 )
 
+const ()
+
 func main() {
+	factory := Common.GetIOCFactory()
+
+	iCmd := reflect.TypeOf((*ICommand)(nil)).Elem()
 
 	fmt.Printf("ServerStart\n")
 	reader := bufio.NewReader(os.Stdin)
 
 	sc := Server.GetCurrentServer()
-	TestFactory()
 	sc.Start()
+
+	registCommand()
+
 	for {
+		fmt.Print("cmd:")
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
 			fmt.Printf("Error:%s", err.Error())
 			continue
 		}
-		command := string(line[:len(line)-2])
-		fmt.Printf("Get Command:%s\n", command)
-		if command == "stop" {
-			fmt.Printf("app exit\n")
-			sc.Stop()
-			break
+		args := string(line[:len(line)-2])
+
+		var strCommand string
+
+		var strParam string
+
+		if spaceIndex := strings.Index(args, " "); spaceIndex >= 0 {
+			runeArgs := []rune(args)
+			strCommand = string(runeArgs[:spaceIndex])
+			strParam = string(runeArgs[spaceIndex:])
+		} else {
+			strCommand = args
+		}
+
+		strCommand = strings.ToLower(strCommand)
+
+		strParam = strings.Trim(strParam, " ")
+
+		if obj, err := factory.GetByName(strCommand, iCmd); err != nil || obj == nil {
+			fmt.Printf("command<%s> not exist in system\n", strCommand)
+			continue
+		} else {
+			command := obj.(ICommand)
+			command.DoCommand(strParam)
 		}
 	}
 }
 
-type testType struct {
-	key int
-}
+func registCommand() {
+	iCmd := reflect.TypeOf((*ICommand)(nil)).Elem()
 
-type testInterface interface {
-	Test() int
-}
-
-func (this *testType) Test() int {
-	return this.key
-}
-
-type testTypeDecorater struct {
-	innerPackage testInterface
-}
-
-func (this *testTypeDecorater) Test() int {
-	return this.innerPackage.Test() * 4
-}
-
-func (this *testTypeDecorater) SetPackage(i interface{}) {
-	obj := i.(testInterface)
-	fmt.Printf("package:%v,%d,%v,%v\n", this, obj.Test(), this == nil, obj == nil)
-	this.innerPackage = obj
-}
-
-func TestFactory() {
 	factory := Common.GetIOCFactory()
 
-	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
-
-	factory.Regist(ti,
-		reflect.TypeOf(new(testType)), Common.InstanceType_Normal)
-
-	factory.RegistDecorate(ti, reflect.TypeOf(new(testTypeDecorater)), Common.InstanceType_Normal)
-
-	rResult := new(testType).Test()
-	tObj, _ := factory.Get(ti)
-
-	tResult := tObj.(testInterface).Test()
-
-	fmt.Printf("%d,%d", tResult, rResult)
-
+	factory.RegistByName("stop", iCmd, reflect.TypeOf(new(Command.Stop)), Common.InstanceType_Singleton)
+	factory.RegistByName("echo", iCmd, reflect.TypeOf(new(Command.Echo)), Common.InstanceType_Singleton)
 }
