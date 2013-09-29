@@ -155,7 +155,7 @@ func (this *IOCFactory) GetAll(i reflect.Type) map[string]interface{} {
 func (this *IOCFactory) getRegistContext(key string, i reflect.Type) (interface{}, error) {
 	var pArray = this.getPArray(i)
 	if len(pArray) == 0 {
-		return nil, fmt.Errorf("interface named \"%s\" not regist any type", reflect.TypeOf(i).Name())
+		return nil, fmt.Errorf("interface named \"%s\" not regist any type", i.Name())
 	}
 
 	return pArray[key], nil

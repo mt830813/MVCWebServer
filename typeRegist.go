@@ -5,6 +5,7 @@ import (
 	"Prj/MVCWebServer/Common"
 	"Prj/MVCWebServer/Server"
 	"Prj/MVCWebServer/Server/Handler"
+	"Prj/MVCWebServer/Web/Test/Controller"
 	"reflect"
 )
 
@@ -14,6 +15,7 @@ type typeRegist struct {
 func (this *typeRegist) Regist() {
 	registCommand()
 	registHandler()
+	registController()
 }
 
 func registHandler() {
@@ -41,4 +43,7 @@ func registController() {
 	i := reflect.TypeOf((*Server.IController)(nil)).Elem()
 
 	factory := Common.GetIOCFactory()
+
+	factory.RegistByName("test", i, reflect.TypeOf(new(Controller.TestController)), Common.InstanceType_Normal)
+
 }
