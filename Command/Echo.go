@@ -5,6 +5,7 @@ import (
 )
 
 type Echo struct {
+	*CommandBase
 }
 
 func (this *Echo) DoCommand(param string) {

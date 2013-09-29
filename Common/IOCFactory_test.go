@@ -7,6 +7,16 @@ import (
 	"testing"
 )
 
+func TestFactoryGet(t *testing.T) {
+	factory := GetIOCFactory()
+	factory2 := GetIOCFactory()
+
+	if factory != factory2 {
+		t.Logf("GetIOCFactory is not singleton")
+		t.Fail()
+	}
+}
+
 func TestRegist(t *testing.T) {
 
 	var ti *testInterface

@@ -1,13 +1,11 @@
 package Server
 
 import (
-	"Prj/MVCWebServer/Common"
-	"Prj/MVCWebServer/Server/Module"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
+
 	"sync"
 )
 
@@ -31,8 +29,6 @@ func GetCurrentServer() *Server {
 func newServer() {
 	inst = new(Server)
 
-	inst.registType()
-
 	err := inst.init()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -53,7 +49,6 @@ func (this *Server) init() error {
 
 		for i := 0; i < len(tsc.Sites); i++ {
 			site := tsc.Sites[i]
-			site.init()
 			sc.Push(site)
 		}
 
@@ -66,7 +61,7 @@ func (this *Server) init() error {
 
 func (this *Server) Start() {
 	for _, site := range this.Sites.array {
-		go site.Start()
+		site.Start()
 	}
 }
 
@@ -78,15 +73,6 @@ func (this *Server) Stop() {
 
 func (this *Server) defaultHandleFunction(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(response, "<h1>Hello World!</br>I'm</h1>")
-}
-
-func (this *Server) registType() {
-	factory := Common.GetIOCFactory()
-
-	iWebHandleType := reflect.TypeOf((*http.Handler)(nil)).Elem()
-
-	factory.RegistByName("MvcModule", iWebHandleType, reflect.TypeOf(new(Module.CommonMvcModule)), Common.InstanceType_Normal)
-
 }
 
 type tempSiteCollection struct {

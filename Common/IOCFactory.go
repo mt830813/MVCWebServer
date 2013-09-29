@@ -120,6 +120,38 @@ func (this *IOCFactory) GetByName(key string, i reflect.Type) (interface{}, erro
 
 }
 
+func (this *IOCFactory) GetRegistCount(i reflect.Type) int {
+	var returnValue int
+	if i != nil {
+		pArray := this.getPArray(i)
+		returnValue = len(pArray)
+	} else {
+		for _, array := range this.array {
+			returnValue += len(array)
+		}
+	}
+	return returnValue
+}
+
+func (this *IOCFactory) GetAll(i reflect.Type) map[string]interface{} {
+
+	pArray := this.getPArray(i)
+
+	returnValue := make(map[string]interface{}, len(pArray))
+
+	count := 0
+	for key, _ := range pArray {
+		if obj, err := this.GetByName(key, i); err == nil {
+			returnValue[key] = obj
+		} else {
+			fmt.Printf("%s\n", err.Error())
+		}
+		count++
+	}
+
+	return returnValue
+}
+
 func (this *IOCFactory) getRegistContext(key string, i reflect.Type) (interface{}, error) {
 	var pArray = this.getPArray(i)
 	if len(pArray) == 0 {
@@ -166,12 +198,10 @@ func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext) in
 	if returnValue == nil {
 		return nil
 	}
-	fmt.Printf("returnValue is :%v,context:%v\n", returnValue, context.currentContext.bType.Name())
 	if context.nextContext != nil {
 		tPackage := this.createNewDecorateInst(context.nextContext)
 		id := returnValue.(IDecorater)
 		tId := id
-		fmt.Printf("tPackage:%v,interface:%v\n", tPackage, tId)
 		tId.SetPackage(tPackage)
 	}
 	return returnValue

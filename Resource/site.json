@@ -2,19 +2,34 @@
 	"Sites":[
 	{
 		"Name":"TestSite",
-		"RootPath":"Test",
+		"RootPath":"Web/Test",
 		"Port":"8080",
 		"SiteSetting":{
-			"Muxes":[
+			"Handlers":[
 				{
-					
+					"Pattern":"/Javascript|/Css",
+					"Name":"WebResourceHandler"
+				},
+				{
+					"Pattern":"/File",
+					"Name":"FileResourceHandler"
+				},
+				{
+					"Pattern":"/",
+					"Name":"NormalHandler"
 				}
-			]
+			],
+			"AppSetting":{
+				"IsDebug":"true"
+			},
+			"ConnectionString":{
+				"Test":"Test"
+			}
 		}
 	},
 	{
 		"Name":"TestSite2",
-		"RootPath":"Test2",
+		"RootPath":"Web/Test2",
 		"Port":"8082"
 	}
 	]

@@ -15,20 +15,22 @@ import (
 const ()
 
 func main() {
+
 	factory := Common.GetIOCFactory()
 
-	iCmd := reflect.TypeOf((*ICommand)(nil)).Elem()
+	new(typeRegist).Regist()
+
+	iCmd := reflect.TypeOf((*Command.ICommand)(nil)).Elem()
 
 	fmt.Printf("ServerStart\n")
 	reader := bufio.NewReader(os.Stdin)
 
 	sc := Server.GetCurrentServer()
+
 	sc.Start()
 
-	registCommand()
-
 	for {
-		fmt.Print("cmd:")
+		fmt.Print("\ncmd:")
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
 			fmt.Printf("Error:%s", err.Error())
@@ -56,17 +58,8 @@ func main() {
 			fmt.Printf("command<%s> not exist in system\n", strCommand)
 			continue
 		} else {
-			command := obj.(ICommand)
+			command := obj.(Command.ICommand)
 			command.DoCommand(strParam)
 		}
 	}
-}
-
-func registCommand() {
-	iCmd := reflect.TypeOf((*ICommand)(nil)).Elem()
-
-	factory := Common.GetIOCFactory()
-
-	factory.RegistByName("stop", iCmd, reflect.TypeOf(new(Command.Stop)), Common.InstanceType_Singleton)
-	factory.RegistByName("echo", iCmd, reflect.TypeOf(new(Command.Echo)), Common.InstanceType_Singleton)
 }
