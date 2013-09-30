@@ -10,7 +10,8 @@ import (
 )
 
 type Server struct {
-	Sites *SiteCollection
+	Sites     *SiteCollection
+	isRunning bool
 }
 
 const (
@@ -33,6 +34,20 @@ func newServer() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+}
+
+func (this *Server) Reload() {
+	if this.isRunning {
+		fmt.Printf("server stopping ...\n")
+		this.Stop()
+		fmt.Printf("server stopping finish ...\n")
+	}
+	fmt.Printf("server reload ...\n")
+	this.init()
+	fmt.Printf("server reload finish ...\n")
+
+	this.Start()
+	fmt.Printf("server started ...\n")
 }
 
 func (this *Server) init() error {
@@ -63,12 +78,14 @@ func (this *Server) Start() {
 	for _, site := range this.Sites.array {
 		site.Start()
 	}
+	this.isRunning = true
 }
 
 func (this *Server) Stop() {
 	for _, site := range this.Sites.array {
 		site.Stop()
 	}
+	this.isRunning = false
 }
 
 func (this *Server) defaultHandleFunction(response http.ResponseWriter, request *http.Request) {

@@ -25,6 +25,7 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(args) < 2 {
 		w.WriteHeader(404)
+		fmt.Printf("params count:%d not right", len(args))
 		return
 	}
 

@@ -42,6 +42,7 @@ func registCommand() {
 	factory.RegistByName("list", iCmd, reflect.TypeOf(new(Command.List)), Common.InstanceType_Singleton)
 	factory.RegistByName("exit", iCmd, reflect.TypeOf(new(Command.Exit)), Common.InstanceType_Singleton)
 	factory.RegistByName("quit", iCmd, reflect.TypeOf(new(Command.Exit)), Common.InstanceType_Singleton)
+	factory.RegistByName("restart", iCmd, reflect.TypeOf(new(Command.ServerReload)), Common.InstanceType_Singleton)
 }
 
 func registController() {
