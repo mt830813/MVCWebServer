@@ -40,8 +40,11 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		params[i] = interface{}(arg)
 	}
 
+	context := &Server.RequestContext{ControllerName: controllerName, MethodName: methodName}
+
 	if controller, ok := factory.GetByName(strings.ToLower(controllerName),
-		iControllerType, map[string]interface{}{"Rw": w, "Request": r}); ok != nil || controller == nil {
+		iControllerType, map[string]interface{}{"Rw": w, "Request": r,
+			"Site": this.site, "Context": context}); ok != nil || controller == nil {
 		w.WriteHeader(404)
 		if ok != nil {
 			fmt.Printf("view path %s failed:%s\n", requestPath, ok.Error())
@@ -52,7 +55,9 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if results, err := new(Util.ReflectUtil).RunObjMethod(controller, methodName, params); err != nil {
 			fmt.Printf("view path %s failed:%s\n", requestPath, err.Error())
 		} else {
-			fmt.Fprint(w, results[0])
+			if len(results) > 0 {
+				fmt.Fprint(w, results[0])
+			}
 		}
 
 	}

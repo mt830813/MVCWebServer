@@ -30,12 +30,13 @@ func main() {
 	sc.Start()
 
 	for {
-		fmt.Print("\ncmd:")
+		fmt.Print("cmd:")
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
 			fmt.Printf("Error:%s", err.Error())
 			continue
 		}
+		fmt.Printf("%s\n", string(line))
 		args := string(line[:len(line)-2])
 
 		var strCommand string
