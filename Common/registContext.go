@@ -5,6 +5,7 @@ import (
 )
 
 type registContext struct {
-	instType InstanceType
-	bType    reflect.Type
+	instType   InstanceType
+	bType      reflect.Type
+	createFunc interface{}
 }

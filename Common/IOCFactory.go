@@ -1,6 +1,7 @@
 package Common
 
 import (
+	"Prj/MVCWebServer/Util"
 	"fmt"
 	"log"
 	"reflect"
@@ -37,27 +38,39 @@ func initFactory() {
 }
 
 func (this *IOCFactory) Regist(i reflect.Type, t reflect.Type,
-	instType InstanceType) error {
-	return this.RegistByName("default", i, t, instType)
+	instType InstanceType, createFunc interface{}) error {
+	return this.RegistByName("default", i, t, instType, createFunc)
 }
 
 func (this *IOCFactory) RegistByName(key string, i reflect.Type,
-	t reflect.Type, instType InstanceType) error {
+	t reflect.Type, instType InstanceType, createFunc interface{}) error {
 	if !this.checkIsImplementInterface(i, t) {
 		return fmt.Errorf("regist type error")
 	}
+
+	if createFunc != nil {
+		funcValue := reflect.TypeOf(createFunc)
+
+		if funcValue.NumOut() != 1 {
+			return fmt.Errorf("createFunc only allow 1 parameter out")
+		}
+		if !this.checkIsImplementInterface(i, funcValue.Out(0)) {
+			return fmt.Errorf("createFunc's out parameter is not implement interface %s", i.Name())
+		}
+
+	}
+
 	var pArray = this.getPArray(i)
-	pArray[key] = this.createNormalRegistContext(i, t, instType)
+	pArray[key] = this.createNormalRegistContext(i, t, instType, createFunc)
 	return nil
 }
 
-func (this *IOCFactory) RegistDecorate(i reflect.Type, t reflect.Type,
-	instType InstanceType) {
-	this.RegistDecorateByName("default", i, t, instType)
+func (this *IOCFactory) RegistDecorate(i reflect.Type, t reflect.Type) {
+	this.RegistDecorateByName("default", i, t)
 }
 
 func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
-	t reflect.Type, instType InstanceType) {
+	t reflect.Type) {
 	pArray := this.getPArray(i)
 	rContext, err := this.getRegistContext(key, i)
 	if err != nil {
@@ -65,13 +78,8 @@ func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
 		return
 	}
 
-	if !this.checkIsImplementInterface(i, t) {
-		fmt.Printf("regist type error")
-		return
-	}
-
 	dContext := new(decorateRegistcontext)
-	dContext.currentContext = this.createNormalRegistContext(i, t, instType)
+
 	var cContext *decorateRegistcontext
 
 	if rContext != nil {
@@ -87,16 +95,21 @@ func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
 		case *decorateRegistcontext:
 			cContext = rContext.(*decorateRegistcontext)
 		}
+
 		dContext.nextContext = cContext
+		this.RegistByName(key, i, t, InstanceType_Normal, nil)
+		if tmpContext, err := this.getRegistContext(key, i); err == nil {
+			dContext.currentContext = tmpContext.(*registContext)
+		}
 	}
 	pArray[key] = dContext
 }
 
-func (this *IOCFactory) Get(i reflect.Type) (interface{}, error) {
-	return this.GetByName("default", i)
+func (this *IOCFactory) Get(i reflect.Type, args []interface{}) (interface{}, error) {
+	return this.GetByName("default", i, args)
 }
 
-func (this *IOCFactory) GetByName(key string, i reflect.Type) (interface{}, error) {
+func (this *IOCFactory) GetByName(key string, i reflect.Type, args []interface{}) (interface{}, error) {
 	var returnValue interface{}
 	if iContext, err := this.getRegistContext(key, i); err != nil {
 		return nil, err
@@ -104,14 +117,14 @@ func (this *IOCFactory) GetByName(key string, i reflect.Type) (interface{}, erro
 		switch iContext.(type) {
 		case *registContext:
 			regContext := iContext.(*registContext)
-			returnValue = this.createNewInst(regContext)
+			returnValue = this.createNewInst(regContext, args)
 			if regContext.instType == InstanceType_Singleton {
 				pArray := this.getPArray(i)
 				pArray[key] = returnValue
 			}
 		case *decorateRegistcontext:
 			drContext := iContext.(*decorateRegistcontext)
-			returnValue = this.createNewDecorateInst(drContext)
+			returnValue = this.createNewDecorateInst(drContext, nil)
 		default:
 			returnValue = iContext
 		}
@@ -133,19 +146,15 @@ func (this *IOCFactory) GetRegistCount(i reflect.Type) int {
 	return returnValue
 }
 
-func (this *IOCFactory) GetAll(i reflect.Type) map[string]interface{} {
+func (this *IOCFactory) GetRegistKeys(i reflect.Type) []string {
 
 	pArray := this.getPArray(i)
 
-	returnValue := make(map[string]interface{}, len(pArray))
+	returnValue := make([]string, len(pArray))
 
 	count := 0
 	for key, _ := range pArray {
-		if obj, err := this.GetByName(key, i); err == nil {
-			returnValue[key] = obj
-		} else {
-			fmt.Printf("%s\n", err.Error())
-		}
+		returnValue[count] = key
 		count++
 	}
 
@@ -172,11 +181,12 @@ func (this *IOCFactory) getPArray(i reflect.Type) interfaceArrayValue {
 }
 
 func (this *IOCFactory) createNormalRegistContext(i reflect.Type,
-	t reflect.Type, instType InstanceType) *registContext {
+	t reflect.Type, instType InstanceType, createFunc interface{}) *registContext {
 
 	returnValue := new(registContext)
 	returnValue.bType = t
 	returnValue.instType = instType
+	returnValue.createFunc = createFunc
 
 	return returnValue
 }
@@ -185,21 +195,32 @@ func (this *IOCFactory) checkIsImplementInterface(i reflect.Type, instType refle
 	return instType.Implements(i)
 }
 
-func (this *IOCFactory) createNewInst(context *registContext) interface{} {
-	returnValue := reflect.New(context.bType.Elem())
-	var i interface{} = returnValue.Interface()
-	return i
+func (this *IOCFactory) createNewInst(context *registContext, args []interface{}) interface{} {
+	var returnValue interface{}
+	if context.createFunc == nil {
+		newInst := reflect.New(context.bType.Elem())
+		returnValue = newInst.Interface()
+	} else {
+		reflectUtil := new(Util.ReflectUtil)
+		if results, err := reflectUtil.RunMethod(context.createFunc, args); err != nil {
+			return nil
+		} else {
+			return results[0]
+		}
+	}
+
+	return returnValue
 
 }
 
-func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext) interface{} {
+func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext, args []interface{}) interface{} {
 
-	returnValue := this.createNewInst(context.currentContext)
+	returnValue := this.createNewInst(context.currentContext, args)
 	if returnValue == nil {
 		return nil
 	}
 	if context.nextContext != nil {
-		tPackage := this.createNewDecorateInst(context.nextContext)
+		tPackage := this.createNewDecorateInst(context.nextContext, args)
 		id := returnValue.(IDecorater)
 		tId := id
 		tId.SetPackage(tPackage)

@@ -3,6 +3,7 @@ package Handler
 import (
 	"Prj/MVCWebServer/Common"
 	"Prj/MVCWebServer/Server"
+	"Prj/MVCWebServer/Util"
 	"fmt"
 	"net/http"
 
@@ -30,7 +31,14 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	controllerName := args[0]
 
 	methodName := args[1]
-	params := args[2:]
+
+	tempParmas := args[2:]
+
+	params := make([]interface{}, len(tempParmas))
+
+	for i, arg := range tempParmas {
+		params[i] = interface{}(arg)
+	}
 
 	if controller, ok := factory.GetByName(strings.ToLower(controllerName), iControllerType); ok != nil || controller == nil {
 		w.WriteHeader(404)
@@ -40,29 +48,11 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("view path %s failed:controller named <%s> not regist\n", requestPath, controllerName)
 		}
 	} else {
-		tController := reflect.ValueOf(controller)
-
-		if method := tController.MethodByName(methodName); method.IsValid() {
-
-			argumentsCount := method.Type().NumIn()
-
-			in := make([]reflect.Value, argumentsCount)
-
-			for i := 0; i < argumentsCount; i++ {
-				if i >= len(params) {
-					typeIn := method.Type().In(i)
-					in[i] = reflect.New(typeIn).Elem()
-				} else {
-					in[i] = reflect.ValueOf(params[i])
-				}
-			}
-			results := method.Call(in)
-
-			fmt.Fprintf(w, "%s", results[0])
+		if results, err := new(Util.ReflectUtil).RunObjMethod(controller, methodName, params); err != nil {
+			fmt.Printf("view path %s failed:%s\n", requestPath, err.Error())
 		} else {
-			w.WriteHeader(404)
-			fmt.Printf("view path %s failed: not contain method named <%s> in controller <%s>\n",
-				requestPath, methodName, controllerName)
+			fmt.Fprint(w, results[0])
 		}
+
 	}
 }

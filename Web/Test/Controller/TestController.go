@@ -1,8 +1,11 @@
 package Controller
 
-import ()
+import (
+	"Prj/MVCWebServer/Server"
+)
 
 type TestController struct {
+	Server.ControllerBase
 }
 
 func (this *TestController) Test(title string, name string) string {
