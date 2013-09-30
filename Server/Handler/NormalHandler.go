@@ -1,10 +1,10 @@
 package Handler
 
 import (
-	"Prj/MVCWebServer/Common"
-	"Prj/MVCWebServer/Server"
-	"Prj/MVCWebServer/Util"
 	"fmt"
+	"github.com/mt830813/MVCWebServer/Common"
+	"github.com/mt830813/MVCWebServer/Server"
+	"github.com/mt830813/MVCWebServer/Util"
 	"net/http"
 
 	"reflect"
@@ -54,6 +54,7 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		if results, err := new(Util.ReflectUtil).RunObjMethod(controller, methodName, params); err != nil {
 			fmt.Printf("view path %s failed:%s\n", requestPath, err.Error())
+			w.WriteHeader(404)
 		} else {
 			if len(results) > 0 {
 				fmt.Fprint(w, results[0])

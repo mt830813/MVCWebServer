@@ -1,7 +1,7 @@
 package Handler
 
 import (
-	"Prj/MVCWebServer/Server"
+	"github.com/mt830813/MVCWebServer/Server"
 )
 
 type baseHandler struct {

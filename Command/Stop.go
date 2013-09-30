@@ -1,7 +1,7 @@
 package Command
 
 import (
-	"Prj/MVCWebServer/Server"
+	"github.com/mt830813/MVCWebServer/Server"
 )
 
 type Stop struct {

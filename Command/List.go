@@ -1,8 +1,8 @@
 package Command
 
 import (
-	"Prj/MVCWebServer/Common"
 	"fmt"
+	"github.com/mt830813/MVCWebServer/Common"
 	"reflect"
 )
 

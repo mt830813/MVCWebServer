@@ -1,11 +1,11 @@
 package main
 
 import (
-	"Prj/MVCWebServer/Command"
-	"Prj/MVCWebServer/Common"
-	"Prj/MVCWebServer/Server"
-	"Prj/MVCWebServer/Server/Handler"
-	"Prj/MVCWebServer/Web/Test/Controller"
+	"github.com/mt830813/MVCWebServer/Command"
+	"github.com/mt830813/MVCWebServer/Common"
+	"github.com/mt830813/MVCWebServer/Server"
+	"github.com/mt830813/MVCWebServer/Server/Handler"
+	"github.com/mt830813/MVCWebServer/Web/Test/Controller"
 	"reflect"
 )
 

@@ -2,11 +2,11 @@
 package main
 
 import (
-	"Prj/MVCWebServer/Command"
-	"Prj/MVCWebServer/Common"
-	"Prj/MVCWebServer/Server"
 	"bufio"
 	"fmt"
+	"github.com/mt830813/MVCWebServer/Command"
+	"github.com/mt830813/MVCWebServer/Common"
+	"github.com/mt830813/MVCWebServer/Server"
 	"os"
 	"reflect"
 	"strings"

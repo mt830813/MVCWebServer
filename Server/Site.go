@@ -1,7 +1,7 @@
 package Server
 
 import (
-	"Prj/MVCWebServer/Common"
+	"github.com/mt830813/MVCWebServer/Common"
 
 	"fmt"
 	"net"
