@@ -22,7 +22,7 @@ func TestRegist(t *testing.T) {
 	var ti *testInterface
 	bType := reflect.TypeOf(ti).Elem()
 	factory := GetIOCFactory()
-	factory.Regist(bType, reflect.TypeOf(new(testType)), InstanceType_Normal, nil)
+	factory.Regist(bType, reflect.TypeOf(new(testType)), InstanceType_Normal)
 	length := len(factory.getPArray(bType))
 	if length != 1 {
 		t.Logf("Regist Test Failed")
@@ -46,7 +46,7 @@ func TestRegist(t *testing.T) {
 		t.Fail()
 	}
 
-	factory.Regist(bType, reflect.TypeOf(new(testType2)), InstanceType_Normal, nil)
+	factory.Regist(bType, reflect.TypeOf(new(testType2)), InstanceType_Normal)
 
 	length = len(factory.getPArray(bType))
 
@@ -61,12 +61,13 @@ func TestNormalInst(t *testing.T) {
 
 	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
 
-	factory.Regist(ti, reflect.TypeOf(new(testType)), InstanceType_Normal, CreateTest)
-	factory.RegistByName("other", ti, reflect.TypeOf(new(testType3)), InstanceType_Singleton, nil)
+	factory.Regist(ti, reflect.TypeOf(new(testType)), InstanceType_Normal)
+	factory.RegistByName("other", ti,
+		reflect.TypeOf(new(testType3)), InstanceType_Singleton)
 
-	rResult := CreateTest(2).Test()
+	rResult := (&testType{Key: 2}).Test()
 
-	tObj, _ := factory.Get(ti, []interface{}{2})
+	tObj, _ := factory.Get(ti, map[string]interface{}{"Key": 2})
 	oObj, _ := factory.GetByName("other", ti, nil)
 	oObjTwo, _ := factory.GetByName("other", ti, nil)
 	tResult := tObj.(testInterface).Test()
@@ -76,8 +77,8 @@ func TestNormalInst(t *testing.T) {
 
 	tTest := tObj.(*testType)
 
-	if tTest.key != 2 {
-		t.Logf("result err,key:%d", tTest.key)
+	if tTest.Key != 2 {
+		t.Logf("result err,Key:%d", tTest.Key)
 		t.Fail()
 	}
 
@@ -102,7 +103,7 @@ func TestDecorateInst(t *testing.T) {
 	ti := reflect.TypeOf((*testInterface)(nil)).Elem()
 
 	factory.Regist(ti,
-		reflect.TypeOf(new(testType)), InstanceType_Normal, nil)
+		reflect.TypeOf(new(testType)), InstanceType_Normal)
 	factory.RegistDecorate(ti, reflect.TypeOf(new(testTypeDecorater)))
 
 	var rObj = new(testType)
@@ -119,7 +120,7 @@ func TestDecorateInst(t *testing.T) {
 }
 
 type testType struct {
-	key int
+	Key int
 }
 
 type testType2 struct {
@@ -146,15 +147,15 @@ func (this *testTypeDecorater) SetPackage(i interface{}) {
 }
 
 func (this *testType) Test() int {
-	return this.key
+	return this.Key
 }
 
 func (this *testType3) Test() int {
 	return 256
 }
 
-func CreateTest(key int) *testType {
+func CreateTest(Key int) *testType {
 	returnValue := new(testType)
-	returnValue.key = key
+	returnValue.Key = Key
 	return returnValue
 }

@@ -79,7 +79,7 @@ func (this *Site) init() {
 	}
 
 	for _, setting := range this.SiteSetting.Handlers {
-		if obj, ok := factory.GetByName(strings.ToLower(setting.Name), iControllerType); ok == nil && obj != nil {
+		if obj, ok := factory.GetByName(strings.ToLower(setting.Name), iControllerType, nil); ok == nil && obj != nil {
 			controller := obj.(IHandler)
 			controller.SetSite(this)
 

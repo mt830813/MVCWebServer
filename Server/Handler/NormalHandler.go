@@ -40,7 +40,8 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		params[i] = interface{}(arg)
 	}
 
-	if controller, ok := factory.GetByName(strings.ToLower(controllerName), iControllerType); ok != nil || controller == nil {
+	if controller, ok := factory.GetByName(strings.ToLower(controllerName),
+		iControllerType, map[string]interface{}{"Rw": w, "Request": r}); ok != nil || controller == nil {
 		w.WriteHeader(404)
 		if ok != nil {
 			fmt.Printf("view path %s failed:%s\n", requestPath, ok.Error())

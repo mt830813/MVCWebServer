@@ -54,7 +54,7 @@ func main() {
 
 		strParam = strings.Trim(strParam, " ")
 
-		if obj, err := factory.GetByName(strCommand, iCmd); err != nil || obj == nil {
+		if obj, err := factory.GetByName(strCommand, iCmd, nil); err != nil || obj == nil {
 			fmt.Printf("command<%s> not exist in system\n", strCommand)
 			continue
 		} else {

@@ -16,11 +16,11 @@ func (this *List) DoCommand(param string) {
 	factory := Common.GetIOCFactory()
 	iBaseType := reflect.TypeOf((*ICommand)(nil)).Elem()
 
-	array := factory.GetAll(iBaseType)
+	array := factory.GetRegistKeys(iBaseType)
 
 	index := 0
 
-	for key, _ := range array {
+	for _, key := range array {
 		if index > 0 && index%4 == 0 {
 			fmt.Println()
 		}

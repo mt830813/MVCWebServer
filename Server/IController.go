@@ -1,9 +1,6 @@
 package Server
 
-import (
-	"net/http"
-)
+import ()
 
 type IController interface {
-	CreateController(http.ResponseWriter, *http.Request) IController
 }

@@ -13,9 +13,14 @@ type typeRegist struct {
 }
 
 func (this *typeRegist) Regist() {
+	test()
 	registCommand()
 	registHandler()
 	registController()
+}
+
+func test() {
+
 }
 
 func registHandler() {
@@ -23,7 +28,7 @@ func registHandler() {
 
 	iHandlerType := reflect.TypeOf((*Server.IHandler)(nil)).Elem()
 
-	factory.RegistByName("normalhandler", iHandlerType, reflect.TypeOf(new(Handler.NormalHandler)), Common.InstanceType_Normal, nil)
+	factory.RegistByName("normalhandler", iHandlerType, reflect.TypeOf(new(Handler.NormalHandler)), Common.InstanceType_Normal)
 }
 
 func registCommand() {
@@ -31,12 +36,12 @@ func registCommand() {
 
 	factory := Common.GetIOCFactory()
 
-	factory.RegistByName("stop", iCmd, reflect.TypeOf(new(Command.Stop)), Common.InstanceType_Singleton, nil)
-	factory.RegistByName("echo", iCmd, reflect.TypeOf(new(Command.Echo)), Common.InstanceType_Singleton, nil)
-	factory.RegistByName("start", iCmd, reflect.TypeOf(new(Command.Start)), Common.InstanceType_Singleton, nil)
-	factory.RegistByName("list", iCmd, reflect.TypeOf(new(Command.List)), Common.InstanceType_Singleton, nil)
-	factory.RegistByName("exit", iCmd, reflect.TypeOf(new(Command.Exit)), Common.InstanceType_Singleton, nil)
-	factory.RegistByName("quit", iCmd, reflect.TypeOf(new(Command.Exit)), Common.InstanceType_Singleton, nil)
+	factory.RegistByName("stop", iCmd, reflect.TypeOf(new(Command.Stop)), Common.InstanceType_Singleton)
+	factory.RegistByName("echo", iCmd, reflect.TypeOf(new(Command.Echo)), Common.InstanceType_Singleton)
+	factory.RegistByName("start", iCmd, reflect.TypeOf(new(Command.Start)), Common.InstanceType_Singleton)
+	factory.RegistByName("list", iCmd, reflect.TypeOf(new(Command.List)), Common.InstanceType_Singleton)
+	factory.RegistByName("exit", iCmd, reflect.TypeOf(new(Command.Exit)), Common.InstanceType_Singleton)
+	factory.RegistByName("quit", iCmd, reflect.TypeOf(new(Command.Exit)), Common.InstanceType_Singleton)
 }
 
 func registController() {
@@ -44,6 +49,6 @@ func registController() {
 
 	factory := Common.GetIOCFactory()
 
-	factory.RegistByName("test", i, reflect.TypeOf(new(Controller.TestController)), Common.InstanceType_Normal, nil)
+	factory.RegistByName("test", i, reflect.TypeOf(new(Controller.TestController)), Common.InstanceType_Normal)
 
 }

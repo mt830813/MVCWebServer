@@ -2,6 +2,7 @@ package Controller
 
 import (
 	"Prj/MVCWebServer/Server"
+	"fmt"
 )
 
 type TestController struct {
@@ -9,5 +10,7 @@ type TestController struct {
 }
 
 func (this *TestController) Test(title string, name string) string {
-	return "<html><body><h1>hi</h1>title:" + title + "</br>name:" + name + "</body></html>"
+	returnValue := fmt.Sprintf("<html><body><h1>hi:%s</h1>title:%s</br>name:%s</body></html>", this.Request.URL.Path,
+		title, name)
+	return returnValue
 }

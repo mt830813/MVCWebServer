@@ -1,7 +1,6 @@
 package Common
 
 import (
-	"Prj/MVCWebServer/Util"
 	"fmt"
 	"log"
 	"reflect"
@@ -38,30 +37,18 @@ func initFactory() {
 }
 
 func (this *IOCFactory) Regist(i reflect.Type, t reflect.Type,
-	instType InstanceType, createFunc interface{}) error {
-	return this.RegistByName("default", i, t, instType, createFunc)
+	instType InstanceType) error {
+	return this.RegistByName("default", i, t, instType)
 }
 
 func (this *IOCFactory) RegistByName(key string, i reflect.Type,
-	t reflect.Type, instType InstanceType, createFunc interface{}) error {
+	t reflect.Type, instType InstanceType) error {
 	if !this.checkIsImplementInterface(i, t) {
 		return fmt.Errorf("regist type error")
 	}
 
-	if createFunc != nil {
-		funcValue := reflect.TypeOf(createFunc)
-
-		if funcValue.NumOut() != 1 {
-			return fmt.Errorf("createFunc only allow 1 parameter out")
-		}
-		if !this.checkIsImplementInterface(i, funcValue.Out(0)) {
-			return fmt.Errorf("createFunc's out parameter is not implement interface %s", i.Name())
-		}
-
-	}
-
 	var pArray = this.getPArray(i)
-	pArray[key] = this.createNormalRegistContext(i, t, instType, createFunc)
+	pArray[key] = this.createNormalRegistContext(i, t, instType)
 	return nil
 }
 
@@ -97,7 +84,7 @@ func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
 		}
 
 		dContext.nextContext = cContext
-		this.RegistByName(key, i, t, InstanceType_Normal, nil)
+		this.RegistByName(key, i, t, InstanceType_Normal)
 		if tmpContext, err := this.getRegistContext(key, i); err == nil {
 			dContext.currentContext = tmpContext.(*registContext)
 		}
@@ -105,11 +92,11 @@ func (this *IOCFactory) RegistDecorateByName(key string, i reflect.Type,
 	pArray[key] = dContext
 }
 
-func (this *IOCFactory) Get(i reflect.Type, args []interface{}) (interface{}, error) {
+func (this *IOCFactory) Get(i reflect.Type, args map[string]interface{}) (interface{}, error) {
 	return this.GetByName("default", i, args)
 }
 
-func (this *IOCFactory) GetByName(key string, i reflect.Type, args []interface{}) (interface{}, error) {
+func (this *IOCFactory) GetByName(key string, i reflect.Type, args map[string]interface{}) (interface{}, error) {
 	var returnValue interface{}
 	if iContext, err := this.getRegistContext(key, i); err != nil {
 		return nil, err
@@ -181,12 +168,11 @@ func (this *IOCFactory) getPArray(i reflect.Type) interfaceArrayValue {
 }
 
 func (this *IOCFactory) createNormalRegistContext(i reflect.Type,
-	t reflect.Type, instType InstanceType, createFunc interface{}) *registContext {
+	t reflect.Type, instType InstanceType) *registContext {
 
 	returnValue := new(registContext)
 	returnValue.bType = t
 	returnValue.instType = instType
-	returnValue.createFunc = createFunc
 
 	return returnValue
 }
@@ -195,17 +181,18 @@ func (this *IOCFactory) checkIsImplementInterface(i reflect.Type, instType refle
 	return instType.Implements(i)
 }
 
-func (this *IOCFactory) createNewInst(context *registContext, args []interface{}) interface{} {
+func (this *IOCFactory) createNewInst(context *registContext, args map[string]interface{}) interface{} {
 	var returnValue interface{}
-	if context.createFunc == nil {
-		newInst := reflect.New(context.bType.Elem())
-		returnValue = newInst.Interface()
-	} else {
-		reflectUtil := new(Util.ReflectUtil)
-		if results, err := reflectUtil.RunMethod(context.createFunc, args); err != nil {
-			return nil
-		} else {
-			return results[0]
+	newInst := reflect.New(context.bType.Elem())
+	returnValue = newInst.Interface()
+	obj := newInst.Elem()
+	if args != nil {
+		for key, value := range args {
+			field := obj.FieldByName(key)
+			//fmt.Printf("key :%s,field:%v,allowSet:<%v>\n", key, field, field.CanSet())
+			if field.IsValid() && field.CanSet() {
+				field.Set(reflect.ValueOf(value))
+			}
 		}
 	}
 
@@ -213,7 +200,7 @@ func (this *IOCFactory) createNewInst(context *registContext, args []interface{}
 
 }
 
-func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext, args []interface{}) interface{} {
+func (this *IOCFactory) createNewDecorateInst(context *decorateRegistcontext, args map[string]interface{}) interface{} {
 
 	returnValue := this.createNewInst(context.currentContext, args)
 	if returnValue == nil {
