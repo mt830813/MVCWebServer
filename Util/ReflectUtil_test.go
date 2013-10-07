@@ -50,7 +50,32 @@ func TestRunMethod(t *testing.T) {
 
 }
 
+func TestGetParam(t *testing.T) {
+	reflect := new(ReflectUtil)
+
+	param := map[string]interface{}{
+		"Name": "Tom",
+		"Sex":  "Male",
+	}
+
+	tObj := &a{Name: param["Name"].(string)}
+
+	obj := new(a)
+
+	if result, err := reflect.RunMapMethod(obj.Test3, param); err != nil {
+		t.Log(err.Error())
+		t.Fail()
+		if result[0] != obj.Test3(tObj) {
+			t.Log("result error")
+			t.Fail()
+		}
+	}
+
+}
+
 type a struct {
+	Name string
+	Sex  string
 }
 
 func (this *a) Test(param string) string {
@@ -59,4 +84,8 @@ func (this *a) Test(param string) string {
 
 func (this *a) Test2(obj *a, param string) string {
 	return obj.Test(param)
+}
+
+func (this *a) Test3(obj *a) string {
+	return obj.Name
 }

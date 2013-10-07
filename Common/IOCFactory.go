@@ -2,6 +2,7 @@ package Common
 
 import (
 	"fmt"
+	"github.com/mt830813/MVCWebServer/Util"
 	"log"
 	"reflect"
 	"sync"
@@ -187,13 +188,8 @@ func (this *IOCFactory) createNewInst(context *registContext, args map[string]in
 	returnValue = newInst.Interface()
 	obj := newInst.Elem()
 	if args != nil {
-		for key, value := range args {
-			field := obj.FieldByName(key)
-			//fmt.Printf("key :%s,field:%v,allowSet:<%v>\n", key, field, field.CanSet())
-			if field.IsValid() && field.CanSet() {
-				field.Set(reflect.ValueOf(value))
-			}
-		}
+		rUtil := new(Util.ReflectUtil)
+		rUtil.ObjSetFields(obj, args)
 	}
 
 	return returnValue

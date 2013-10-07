@@ -17,7 +17,6 @@ type NormalHandler struct {
 
 func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	iControllerType := reflect.TypeOf((*Server.IController)(nil)).Elem()
-
 	requestPath := strings.TrimLeft(r.URL.Path, "/")
 	args := strings.Split(requestPath, "/")
 
@@ -35,12 +34,6 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tempParmas := args[2:]
 
-	params := make([]interface{}, len(tempParmas))
-
-	for i, arg := range tempParmas {
-		params[i] = interface{}(arg)
-	}
-
 	context := &Server.RequestContext{ControllerName: controllerName, MethodName: methodName}
 
 	if controller, ok := factory.GetByName(strings.ToLower(controllerName),
@@ -53,7 +46,39 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("view path %s failed:controller named <%s> not regist\n", requestPath, controllerName)
 		}
 	} else {
-		if results, err := new(Util.ReflectUtil).RunObjMethod(controller, methodName, params); err != nil {
+
+		var results []interface{}
+		var err error
+
+		rUtil := new(Util.ReflectUtil)
+
+		querys := r.URL.Query()
+
+		if len(r.Form) == 0 && len(querys) == 0 {
+
+			params := make([]interface{}, len(tempParmas))
+
+			for i, arg := range tempParmas {
+				params[i] = interface{}(arg)
+			}
+
+			results, err = rUtil.RunObjMethod(controller, methodName, params)
+		} else {
+			tPrams := make(map[string]interface{})
+
+			params := make(map[string]interface{})
+
+			for key, value := range querys {
+				tPrams[key] = value[len(value)-1]
+			}
+
+			for key, value := range r.Form {
+				tPrams[key] = value[len(value)-1]
+			}
+
+			results, err = rUtil.RunObjMapMethod(controller, methodName, tPrams)
+		}
+		if err != nil {
 			fmt.Printf("view path %s failed:%s\n", requestPath, err.Error())
 			w.WriteHeader(404)
 		} else {
