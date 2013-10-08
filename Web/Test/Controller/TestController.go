@@ -28,6 +28,9 @@ func (this *TestController) Test2(title string, name string) {
 }
 
 func (this *TestController) TestObj(user *User) {
+	if user == nil {
+		user = new(User)
+	}
 	if err := this.View("Test/Test.html", user); err != nil {
 		fmt.Printf("%s\n", err.Error())
 	}
@@ -37,4 +40,5 @@ type User struct {
 	Server.ViewModelBase
 	Name  string
 	Title string
+	PUser *User
 }

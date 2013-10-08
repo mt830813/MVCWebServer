@@ -17,8 +17,8 @@ const (
 	viewRelatePath = "/view"
 )
 
-func (this *ControllerBase) View(path string, obj interface{}) error {
-	model := obj.(IViewModel)
+func (this *ControllerBase) View(path string, obj IViewModel) error {
+	model := obj
 	model = this.initViewModel(model)
 
 	viewPath := this.Site.RootPath + viewRelatePath
@@ -43,9 +43,11 @@ func (this *ControllerBase) View(path string, obj interface{}) error {
 }
 
 func (this *ControllerBase) initViewModel(model IViewModel) IViewModel {
-	model.SetBottomScript("Bottom")
-	model.SetCss("Css")
-	model.SetTopScript("Top")
+	if model != nil {
+		model.SetBottomScript("Bottom")
+		model.SetCss("Css")
+		model.SetTopScript("Top")
+	}
 	//todo
 	return model
 }

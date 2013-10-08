@@ -24,7 +24,7 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(args) < 2 {
 		w.WriteHeader(404)
-		fmt.Printf("params count:%d not right", len(args))
+		fmt.Printf("params count:%d not right need at least 2 params\n", len(args))
 		return
 	}
 
@@ -65,8 +65,6 @@ func (this *NormalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			results, err = rUtil.RunObjMethod(controller, methodName, params)
 		} else {
 			tPrams := make(map[string]interface{})
-
-			params := make(map[string]interface{})
 
 			for key, value := range querys {
 				tPrams[key] = value[len(value)-1]

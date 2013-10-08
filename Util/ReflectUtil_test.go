@@ -122,6 +122,16 @@ func TestObjSetFields(t *testing.T) {
 	}
 }
 
+func TestObjSetFieldsWithoutAll(t *testing.T) {
+	rUtil := new(ReflectUtil)
+	param := map[string]interface{}{
+		"Name": "Tom",
+		"Sex":  "1",
+	}
+	obj := new(a)
+	rUtil.ObjSetFields(reflect.ValueOf(obj).Elem(), param)
+}
+
 type a struct {
 	Name string
 	Sex  int

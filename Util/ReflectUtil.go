@@ -143,11 +143,8 @@ func (this *ReflectUtil) objSetFieldByName(objValue reflect.Value, fieldName str
 			val, e := strconv.ParseUint(value.(string), 10, 0)
 			value = val
 			err = e
-		case reflect.String:
-			value = value
-			err = nil
 		default:
-			err = fmt.Errorf("%v with value %v type error", fType, value)
+			err = nil
 		}
 		if err == nil {
 			vValue := reflect.ValueOf(value)
@@ -172,7 +169,7 @@ func (this *ReflectUtil) objSetFieldByName(objValue reflect.Value, fieldName str
 			field := currentObj.FieldByName(name)
 
 			if field.Kind() != reflect.Slice {
-				fmt.Printf("setField failed %s type error\n", name)
+				fmt.Printf("setField failed %s type error need slice\n", name)
 				return
 			}
 
@@ -206,14 +203,10 @@ func (this *ReflectUtil) objSetFieldByName(objValue reflect.Value, fieldName str
 
 			field := currentObj.FieldByName(tempName)
 			if index == count {
-				if field.Kind() == reflect.Ptr {
-					fmt.Printf("setField failed %s type error\n", tempName)
-					return
-				}
 				setValue(field, value)
 			} else {
 				if field.Kind() != reflect.Ptr {
-					fmt.Printf("setField failed %s type error\n", tempName)
+					fmt.Printf("setField failed %s type error need Ptr\n", tempName)
 					return
 				}
 				if field.IsNil() {
