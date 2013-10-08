@@ -2,6 +2,7 @@ package Util
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -51,31 +52,82 @@ func TestRunMethod(t *testing.T) {
 }
 
 func TestGetParam(t *testing.T) {
-	reflect := new(ReflectUtil)
+	rUtil := new(ReflectUtil)
 
 	param := map[string]interface{}{
-		"Name": "Tom",
-		"Sex":  "Male",
+		"Name":   "Tom",
+		"Sex":    "1",
+		"A.Name": "Jim",
+		"A.Sex":  "2",
 	}
 
 	tObj := &a{Name: param["Name"].(string)}
 
 	obj := new(a)
 
-	if result, err := reflect.RunMapMethod(obj.Test3, param); err != nil {
+	if result, err := rUtil.RunMapMethod(obj.Test3, param); err != nil {
 		t.Log(err.Error())
 		t.Fail()
+	} else {
 		if result[0] != obj.Test3(tObj) {
-			t.Log("result error")
+			t.Logf("result error %s\n", result[0])
 			t.Fail()
 		}
 	}
 
 }
 
+func TestObjSetFields(t *testing.T) {
+	rUtil := new(ReflectUtil)
+
+	param := map[string]interface{}{
+		"Name":      "Tom",
+		"Sex":       "1",
+		"A.Name":    "Jim",
+		"A.Sex":     "2",
+		"B[0].Name": "Green",
+		"B[0].Sex":  "1",
+		"C[0]":      "1",
+		"C[1]":      "2",
+	}
+	obj := new(a)
+	rUtil.ObjSetFields(reflect.ValueOf(obj).Elem(), param)
+	if obj.Name != param["Name"] {
+		t.Logf("result error %s\n", obj.Name)
+		t.Fail()
+	}
+	if obj.A == nil {
+		t.Logf("result error %v\n", obj.A)
+		t.Fail()
+	}
+	if obj.A.Name != param["A.Name"] {
+		t.Logf("result error %s\n", obj.A.Name)
+		t.Fail()
+	}
+	if len(obj.B) != 1 {
+		t.Logf("result error %v\n", obj.B)
+		t.Fail()
+	}
+	if obj.B[0].Name != param["B[0].Name"] {
+		t.Logf("result error %s\n", obj.B[0].Name)
+		t.Fail()
+	}
+	if obj.C[0] != param["C[0]"] {
+		t.Logf("result error %d\n", obj.C[0])
+		t.Fail()
+	}
+	if obj.C[1] != param["C[1]"] {
+		t.Logf("result error %d\n", obj.C[1])
+		t.Fail()
+	}
+}
+
 type a struct {
 	Name string
-	Sex  string
+	Sex  int
+	A    *a
+	B    []*a
+	C    []string
 }
 
 func (this *a) Test(param string) string {

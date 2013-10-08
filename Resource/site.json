@@ -3,7 +3,7 @@
 	{
 		"Name":"TestSite",
 		"RootPath":"Web/Test",
-		"Port":"8083",
+		"Port":"8080",
 		"SiteSetting":{
 			"Handlers":[
 				{

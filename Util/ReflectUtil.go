@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 type ReflectUtil struct {
@@ -94,27 +97,143 @@ func (this *ReflectUtil) RunObjMethod(obj interface{},
 	}
 }
 
+// objType must be the element's value not the pointer's value
 func (this *ReflectUtil) ObjSetFields(objType reflect.Value, values map[string]interface{}) {
-	count := objType.NumField()
-
 	for key, value := range values {
-		field := objType.FieldByName(key)
-		if field.IsValid() && field.CanSet() {
-			fType := field.Type()
-
-			if fType.Kind() == reflect.Ptr {
-				cParams := value.(map[string]interface{})
-				cObj := this.typeSetFields(fType, cParams)
-				field.Set(reflect.ValueOf(cObj))
-			} else {
-				field.Set(reflect.ValueOf(value))
-			}
-		}
+		this.objSetFieldByName(objType, key, value)
 	}
 }
 
-func (this *ReflectUtil) typeSetFields(objType reflect.Type, values map[string]interface{}) interface{} {
+func (this *ReflectUtil) objSetFieldByName(objValue reflect.Value, fieldName string, value interface{}) {
+	getArray := func(str string) (is bool, name string, index int) {
+		strExp := "(.*)\\[(\\d+)\\]"
+		exp := regexp.MustCompile(strExp)
+		result := exp.FindStringSubmatch(str)
+		is = result != nil
+		if is {
+			name = result[1]
+			index, _ = strconv.Atoi(result[2])
+		}
+		return
+	}
+
+	setValue := func(field reflect.Value, value interface{}) {
+		fType := field.Type()
+
+		var err error
+
+		switch fType.Kind() {
+		case reflect.Int:
+			val, e := strconv.Atoi(value.(string))
+			value = val
+			err = e
+		case reflect.Float32:
+			val, e := strconv.ParseFloat(value.(string), 32)
+			value = val
+			err = e
+		case reflect.Float64:
+			val, e := strconv.ParseFloat(value.(string), 64)
+			value = val
+			err = e
+		case reflect.Bool:
+			val, e := strconv.ParseBool(value.(string))
+			value = val
+			err = e
+		case reflect.Uint:
+			val, e := strconv.ParseUint(value.(string), 10, 0)
+			value = val
+			err = e
+		case reflect.String:
+			value = value
+			err = nil
+		default:
+			err = fmt.Errorf("%v with value %v type error", fType, value)
+		}
+		if err == nil {
+			vValue := reflect.ValueOf(value)
+			field.Set(vValue)
+		} else {
+			fmt.Printf("%s\n", err.Error())
+		}
+	}
+
+	names := strings.Split(fieldName, ".")
+	currentObj := objValue
+
+	count := len(names) - 1
+
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Printf("err from %s %v\n", fieldName, x)
+		}
+	}()
+	for index, tempName := range names {
+		if isArray, name, aIndex := getArray(tempName); isArray {
+			field := currentObj.FieldByName(name)
+
+			if field.Kind() != reflect.Slice {
+				fmt.Printf("setField failed %s type error\n", name)
+				return
+			}
+
+			currentCount := field.Len() - 1
+
+			if aIndex > currentCount {
+				countDiff := aIndex - currentCount
+				slice := reflect.MakeSlice(field.Type(), countDiff, countDiff)
+				field.Set(reflect.AppendSlice(field, slice))
+			}
+
+			field = field.Index(aIndex)
+
+			if index == count {
+				setValue(field, value)
+			} else {
+				if field.IsNil() {
+					field.Set(this.createInst(field.Type()))
+				}
+				if field.Kind() == reflect.Ptr {
+					currentObj = field.Elem()
+				} else {
+					currentObj = field
+				}
+			}
+		} else {
+			if strings.ContainsAny(tempName, "[]") {
+				fmt.Printf("setField failed <%s> format error\n", tempName)
+				return
+			}
+
+			field := currentObj.FieldByName(tempName)
+			if index == count {
+				if field.Kind() == reflect.Ptr {
+					fmt.Printf("setField failed %s type error\n", tempName)
+					return
+				}
+				setValue(field, value)
+			} else {
+				if field.Kind() != reflect.Ptr {
+					fmt.Printf("setField failed %s type error\n", tempName)
+					return
+				}
+				if field.IsNil() {
+					inst := this.createInst(field.Type())
+					field.Set(inst)
+				}
+				currentObj = field.Elem()
+			}
+		}
+
+	}
+}
+
+func (this *ReflectUtil) createInst(objType reflect.Type) reflect.Value {
 	newObj := reflect.New(objType.Elem())
+	return newObj
+}
+
+func (this *ReflectUtil) typeSetFields(objType reflect.Type, values map[string]interface{}) interface{} {
+	newObj := this.createInst(objType)
 
 	this.ObjSetFields(newObj.Elem(), values)
 
